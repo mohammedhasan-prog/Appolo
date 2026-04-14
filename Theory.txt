@@ -41,3 +41,4 @@ Grouped into:
 - Created basic Express app with middleware (cors, helmet, morgan).
 - Configured environment variables loading with dotenv.
 - Added nodemon for development and scripts to run the server.
+- Set up Swagger documentation (swagger-ui-express, swagger-jsdoc) accessible at /api-docs.
