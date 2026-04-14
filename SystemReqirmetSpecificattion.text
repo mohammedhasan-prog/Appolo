@@ -1,0 +1,854 @@
+# System Requirements Specification (SRS)
+
+## Doctor Appointment System Backend
+
+## 1. Introduction
+
+This backend system is a role-based hospital appointment management platform for **Admin**, **Doctor**, and **Patient** users. It supports:
+
+* Doctor scheduling and shift allocation
+* Online and offline appointment booking
+* Slot locking and token generation
+* Appointment lifecycle tracking
+* Prescription management
+* Revenue and reporting dashboards
+* Audit logging and patient history
+
+### Strict business rule
+
+**Online and Offline consultations must use different doctors.**
+A doctor must be assigned to only one consultation mode at a time for a given shift/day.
+
+---
+
+## 2. Scope
+
+The backend will manage:
+
+* Authentication and authorization
+* Doctor, patient, and admin management
+* Specialities
+* Shifts and slots
+* Appointment booking
+* Appointment status changes
+* Prescriptions
+* Revenue and reporting
+* Audit logs
+* Medical history access
+
+---
+
+## 3. Tech Stack
+
+### Backend
+
+* **Node.js**
+* **Express.js**
+
+### Database
+
+* **SQLite**
+
+### ORM
+
+* **Prisma**
+
+### Recommended supporting packages
+
+* `jsonwebtoken` for JWT auth
+* `bcryptjs` or `bcrypt` for password hashing
+* `zod` or `joi` for request validation
+* `dotenv` for environment config
+* `cors` and `helmet` for API security
+* `morgan` or `pino` for logging
+
+---
+
+## 4. User Roles
+
+### 4.1 Admin
+
+Can:
+
+* Manage doctors and specialities
+* Create and manage shifts
+* Generate slots and token numbers
+* Monitor all appointments
+* View revenue and reports
+* Access patient records
+* View audit logs
+
+### 4.2 Doctor
+
+Can:
+
+* View assigned schedule
+* View booked patients
+* Update appointment status
+* Add prescriptions
+* Add online consultation links
+* View patient history for their own appointments
+
+### 4.3 Patient
+
+Can:
+
+* Register/login
+* Browse doctors
+* Filter by speciality, mode, and availability
+* Book appointments
+* View upcoming and past appointments
+* Access prescriptions and consultation notes
+
+---
+
+## 5. Functional Requirements
+
+## 5.1 Authentication
+
+* User registration and login
+* JWT-based session management
+* Role-based route protection
+* Password hashing before storage
+
+## 5.2 Doctor Management
+
+* Admin can create, update, deactivate, and reactivate doctors
+* Assign speciality and consultation mode
+* Set consultation fee
+* Store clinic address for offline mode
+* Store video link rules for online appointments
+
+## 5.3 Speciality Management
+
+* Admin can create, update, delete, and list specialities
+
+## 5.4 Shift Management
+
+* Admin defines shifts such as:
+
+  * Morning
+  * Evening
+  * Night
+* Each shift contains:
+
+  * date
+  * start time
+  * end time
+  * consultation mode
+  * assigned doctor
+* A shift must be assigned to a doctor before slots can be generated
+
+## 5.5 Slot and Token Management
+
+* Generate slots within a shift using configured duration
+* Assign token numbers sequentially
+* Mark slot as available, booked, completed, cancelled, or no-show
+* Use transactional locking to prevent double booking
+* Slot must be reserved atomically during booking
+
+## 5.6 Appointment Management
+
+* Patients book available slots
+* Appointment lifecycle:
+
+  * pending
+  * confirmed
+  * completed
+  * cancelled
+  * no-show
+* Admin can view all appointments
+* Doctor can update appointment status for their own appointments only
+
+## 5.7 Prescription Management
+
+* Doctor adds:
+
+  * diagnosis notes
+  * medicines
+  * follow-up instructions
+* Timestamp should be auto-recorded
+* Prescription visible to patient and admin
+
+## 5.8 Reports
+
+* Daily, weekly, monthly appointment counts
+* Revenue by doctor
+* Revenue by speciality
+* Online vs offline appointment distribution
+* Appointment completion rate
+* Cancelled and no-show reports
+
+## 5.9 Audit Logging
+
+* Track important actions such as:
+
+  * login/logout
+  * doctor creation/update
+  * shift creation
+  * slot generation
+  * appointment booking
+  * appointment cancellation
+  * prescription creation
+
+---
+
+## 6. Business Rules
+
+1. A doctor can serve **only one consultation mode** per shift/day.
+2. Online and offline shifts must never be assigned to the same doctor at the same time.
+3. A slot can be booked by only one patient.
+4. A slot becomes locked immediately when booking starts.
+5. Booking must fail if the slot is already reserved or expired.
+6. Patients can only view their own medical history.
+7. Doctors can only view appointments assigned to them.
+8. Admin has full access to all records.
+9. Token numbers must be unique within a shift.
+10. Appointment fees are based on the assigned doctor.
+11. Offline appointments must show clinic address.
+12. Online appointments must show secure video link only after booking.
+
+---
+
+## 7. Suggested Database Entities
+
+### 7.1 User
+
+* id
+* name
+* email
+* password
+* role (`ADMIN`, `DOCTOR`, `PATIENT`)
+* phone
+* status
+* createdAt
+* updatedAt
+
+### 7.2 DoctorProfile
+
+* id
+* userId
+* specialityId
+* consultationMode (`ONLINE`, `OFFLINE`)
+* consultationFee
+* clinicAddress
+* bio
+* isActive
+
+### 7.3 PatientProfile
+
+* id
+* userId
+* dateOfBirth
+* gender
+* bloodGroup
+* address
+* emergencyContact
+
+### 7.4 Speciality
+
+* id
+* name
+* description
+* isActive
+
+### 7.5 Shift
+
+* id
+* doctorId
+* date
+* shiftType (`MORNING`, `EVENING`, `NIGHT`)
+* startTime
+* endTime
+* consultationMode
+* status
+
+### 7.6 Slot
+
+* id
+* shiftId
+* startTime
+* endTime
+* tokenNumber
+* status (`AVAILABLE`, `LOCKED`, `BOOKED`, `CANCELLED`, `COMPLETED`, `NO_SHOW`)
+
+### 7.7 Appointment
+
+* id
+* patientId
+* doctorId
+* shiftId
+* slotId
+* tokenNumber
+* mode
+* status
+* bookedAt
+* cancelledAt
+* completedAt
+* cancellationReason
+* noShowReason
+* videoLink
+
+### 7.8 Prescription
+
+* id
+* appointmentId
+* doctorId
+* diagnosisNotes
+* medicines
+* followUpInstructions
+* createdAt
+
+### 7.9 Payment / Revenue
+
+* id
+* appointmentId
+* doctorId
+* amount
+* paymentStatus
+* paidAt
+* paymentMethod
+
+### 7.10 AuditLog
+
+* id
+* actorId
+* actorRole
+* action
+* entityType
+* entityId
+* metadata
+* createdAt
+
+---
+
+## 8. API Requirements
+
+Below is a complete API list grouped by module.
+
+---
+
+# 8.1 Authentication APIs
+
+### `POST /api/auth/register`
+
+Registers a patient or doctor account if allowed.
+
+### `POST /api/auth/login`
+
+Logs in user and returns JWT.
+
+### `POST /api/auth/logout`
+
+Invalidates session on client side.
+
+### `GET /api/auth/me`
+
+Returns current authenticated user profile.
+
+### `POST /api/auth/refresh`
+
+Returns a new access token if refresh tokens are used.
+
+---
+
+# 8.2 Admin APIs
+
+## Dashboard and reports
+
+### `GET /api/admin/dashboard`
+
+Returns:
+
+* total appointments
+* completion rate
+* revenue summary
+* online/offline split
+* daily/weekly/monthly stats
+
+### `GET /api/admin/reports/appointments`
+
+Returns appointment statistics by date range.
+
+### `GET /api/admin/reports/revenue`
+
+Returns revenue by:
+
+* doctor
+* speciality
+* date range
+
+### `GET /api/admin/reports/cancellations`
+
+Returns cancelled and no-show appointments.
+
+### `GET /api/admin/reports/patients`
+
+Returns patient booking history summary.
+
+### `GET /api/admin/audit-logs`
+
+Returns audit trail with filters.
+
+---
+
+## Doctor management
+
+### `POST /api/admin/doctors`
+
+Create a doctor account and profile.
+
+### `GET /api/admin/doctors`
+
+List all doctors with filters.
+
+### `GET /api/admin/doctors/:id`
+
+Get doctor detail.
+
+### `PATCH /api/admin/doctors/:id`
+
+Update doctor profile.
+
+### `PATCH /api/admin/doctors/:id/status`
+
+Activate or deactivate a doctor.
+
+### `PATCH /api/admin/doctors/:id/mode`
+
+Update consultation mode.
+
+### `PATCH /api/admin/doctors/:id/fee`
+
+Update consultation fee.
+
+---
+
+## Speciality management
+
+### `POST /api/admin/specialities`
+
+Create speciality.
+
+### `GET /api/admin/specialities`
+
+List specialities.
+
+### `GET /api/admin/specialities/:id`
+
+Get speciality detail.
+
+### `PATCH /api/admin/specialities/:id`
+
+Update speciality.
+
+### `DELETE /api/admin/specialities/:id`
+
+Delete or soft delete speciality.
+
+---
+
+## Shift management
+
+### `POST /api/admin/shifts`
+
+Create doctor shift.
+
+### `GET /api/admin/shifts`
+
+List all shifts.
+
+### `GET /api/admin/shifts/:id`
+
+Get shift detail.
+
+### `PATCH /api/admin/shifts/:id`
+
+Update shift.
+
+### `DELETE /api/admin/shifts/:id`
+
+Delete shift.
+
+### `PATCH /api/admin/shifts/:id/assign-doctor`
+
+Assign or change doctor for a shift.
+
+---
+
+## Slot management
+
+### `POST /api/admin/shifts/:shiftId/slots/generate`
+
+Generate slots for a shift.
+
+Request body may include:
+
+* slotDuration
+* startTime
+* endTime
+
+### `GET /api/admin/shifts/:shiftId/slots`
+
+List slots for a shift.
+
+### `PATCH /api/admin/slots/:id/status`
+
+Manually update slot status if needed.
+
+### `POST /api/admin/slots/:id/release`
+
+Release a locked slot if booking fails or times out.
+
+---
+
+## Patient record access
+
+### `GET /api/admin/patients`
+
+List patients.
+
+### `GET /api/admin/patients/:id`
+
+View patient profile.
+
+### `GET /api/admin/patients/:id/appointments`
+
+View patient appointment history.
+
+### `GET /api/admin/patients/:id/prescriptions`
+
+View patient prescription history.
+
+---
+
+# 8.3 Doctor APIs
+
+## Doctor dashboard
+
+### `GET /api/doctor/dashboard`
+
+Shows:
+
+* upcoming appointments
+* completed appointments
+* today’s schedule
+* revenue summary
+* token list
+
+### `GET /api/doctor/schedule`
+
+Returns assigned shifts for the doctor.
+
+### `GET /api/doctor/shifts/:id/slots`
+
+Returns slots for a specific assigned shift.
+
+---
+
+## Appointment handling
+
+### `GET /api/doctor/appointments`
+
+List appointments assigned to doctor.
+
+### `GET /api/doctor/appointments/:id`
+
+View appointment detail.
+
+### `PATCH /api/doctor/appointments/:id/status`
+
+Update appointment status.
+
+Allowed values:
+
+* confirmed
+* completed
+* cancelled
+* no-show
+
+### `PATCH /api/doctor/appointments/:id/video-link`
+
+Set secure video consultation link for online appointment.
+
+### `GET /api/doctor/appointments/:id/patient-history`
+
+View patient medical history for that appointment.
+
+---
+
+## Prescription management
+
+### `POST /api/doctor/appointments/:id/prescription`
+
+Create prescription.
+
+### `GET /api/doctor/appointments/:id/prescription`
+
+View prescription for an appointment.
+
+### `PATCH /api/doctor/prescriptions/:id`
+
+Update prescription if needed before finalization.
+
+---
+
+## Doctor profile
+
+### `GET /api/doctor/profile`
+
+Get doctor own profile.
+
+### `PATCH /api/doctor/profile`
+
+Update limited profile fields such as bio or contact details.
+
+---
+
+# 8.4 Patient APIs
+
+## Patient dashboard
+
+### `GET /api/patient/dashboard`
+
+Returns:
+
+* upcoming appointments
+* past appointments
+* active prescriptions
+
+### `GET /api/patient/appointments/upcoming`
+
+List upcoming appointments.
+
+### `GET /api/patient/appointments/past`
+
+List past appointments.
+
+---
+
+## Doctor browsing and filtering
+
+### `GET /api/patient/doctors`
+
+List doctors with filters:
+
+* speciality
+* mode
+* availability
+* fee range
+
+### `GET /api/patient/doctors/:id`
+
+Get doctor detail.
+
+### `GET /api/patient/doctors/:id/availability`
+
+Get available shifts and slots for a doctor.
+
+---
+
+## Booking APIs
+
+### `GET /api/patient/shifts`
+
+List available shifts based on filters.
+
+### `GET /api/patient/shifts/:id/slots`
+
+List available slots for a shift.
+
+### `POST /api/patient/appointments`
+
+Book an appointment.
+
+Booking should:
+
+* validate slot availability
+* lock slot atomically
+* generate token number
+* create appointment record
+* fail if slot already booked
+
+### `GET /api/patient/appointments/:id`
+
+Get appointment detail.
+
+### `PATCH /api/patient/appointments/:id/cancel`
+
+Cancel booking before consultation.
+
+---
+
+## Medical history
+
+### `GET /api/patient/prescriptions`
+
+List own prescriptions.
+
+### `GET /api/patient/prescriptions/:id`
+
+View prescription detail.
+
+### `GET /api/patient/medical-history`
+
+View complete appointment and prescription history.
+
+---
+
+# 8.5 Shared APIs
+
+### `GET /api/specialities`
+
+Public speciality list.
+
+### `GET /api/doctors`
+
+Public doctor list with filters.
+
+### `GET /api/doctors/:id`
+
+Public doctor profile.
+
+### `GET /api/slots/availability`
+
+Optional public availability endpoint for search.
+
+---
+
+## 9. Validation Rules
+
+### Registration
+
+* email must be unique
+* password minimum length required
+* role must be valid
+
+### Doctor creation
+
+* speciality must exist
+* consultation mode must be valid
+* fee must be numeric and non-negative
+
+### Shift creation
+
+* start time must be before end time
+* date must be valid
+* doctor must be active
+* consultation mode must match assigned doctor mode
+
+### Booking
+
+* slot must belong to available shift
+* slot must not be locked/booked
+* patient cannot book overlapping appointments
+* mode must match doctor mode
+* token number must not conflict
+
+---
+
+## 10. Security Requirements
+
+* JWT authentication
+* Role-based authorization middleware
+* Password hashing
+* Input validation on every route
+* Prevent SQL injection through Prisma
+* Use transactions for booking and slot locking
+* Access control for patient records
+* Secure hidden video links for online appointments
+* Audit logging for sensitive actions
+
+---
+
+## 11. Non-Functional Requirements
+
+### Performance
+
+* Fast slot lookup
+* Optimized queries for appointment listing
+* Transaction-safe booking flow
+
+### Reliability
+
+* No double booking
+* Atomic booking operations
+* Consistent token generation
+
+### Scalability
+
+SQLite is suitable for small to medium deployments and development. For production with heavy concurrency, PostgreSQL would be a better future upgrade.
+
+### Maintainability
+
+* Clear route separation
+* Service layer for business logic
+* Prisma schema for structured DB control
+
+---
+
+## 12. Recommended Folder Structure
+
+```bash
+src/
+  config/
+  controllers/
+  middlewares/
+  routes/
+  services/
+  validators/
+  utils/
+  prisma/
+  app.js
+  server.js
+```
+
+---
+
+## 13. Recommended Appointment Flow
+
+1. Admin creates doctor
+2. Admin assigns speciality and mode
+3. Admin creates shift
+4. Admin generates slots
+5. Patient logs in
+6. Patient filters doctors by mode/speciality
+7. Patient selects slot
+8. Booking transaction locks the slot
+9. Appointment gets token number
+10. Doctor sees booked appointment
+11. Doctor confirms/completes/cancels
+12. Doctor adds prescription
+13. Admin monitors reports and revenue
+
+---
+
+## 14. Important Implementation Note for Slot Locking
+
+To prevent double booking:
+
+* Start a Prisma transaction
+* Check slot status
+* Update slot to `LOCKED`
+* Create appointment
+* Assign token
+* Commit transaction only if all steps succeed
+
+This is the core protection for concurrent bookings.
+
+---
+
+## 15. Final API Summary
+
+The minimum required API groups are:
+
+* Auth APIs
+* Admin APIs
+* Doctor APIs
+* Patient APIs
+* Public lookup APIs
+* Reports and audit APIs
+
+---
+
+I can turn this into a **proper SRS document format** with sections like **Introduction, Overall Description, Specific Requirements, ER diagram notes, and API table format**.

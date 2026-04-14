@@ -1,0 +1,38 @@
+# Doctor Appointment System Backend - System Requirements Specification (Theory)
+
+## Overview
+A role-based backend system for hospital appointment management supporting Admins, Doctors, and Patients. Key functions include doctor scheduling, slot locking, appointment lifecycle tracking, and prescription management.
+
+## Strict Business Rules
+- Online and offline consultations must use different doctors.
+- A doctor can serve only one consultation mode per shift/day.
+- Slots must be locked immediately when booking starts using transactional locking to prevent double booking.
+- Token numbers must be unique within a shift.
+
+## Tech Stack
+- Backend: Node.js, Express.js
+- Database: SQLite (recommended to upgrade to PostgreSQL for production)
+- ORM: Prisma
+
+## Key Entities
+- Users & Profiles (User, DoctorProfile, PatientProfile)
+- Hospital Data (Speciality, Shift, Slot)
+- Procedures (Appointment, Prescription, Payment)
+- System (AuditLog)
+
+## Implementation Details
+### Slot Locking (Double-Booking Prevention)
+1. Start Prisma transaction.
+2. Check slot status.
+3. Update slot to `LOCKED`.
+4. Create appointment.
+5. Assign token.
+6. Commit transaction.
+
+### APIs
+Grouped into:
+- Authentication APIs
+- Admin APIs (Dashboard, Doctors, Specialities, Shifts, Slots, Patients)
+- Doctor APIs (Dashboard, Appointments, Prescriptions, Profile)
+- Patient APIs (Dashboard, Doctors/Filtering, Booking, Medical history)
+- Shared public APIs
