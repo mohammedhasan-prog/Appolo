@@ -137,6 +137,62 @@ const getPatientHistoryForAppointment = async (doctorId, appointmentId) => {
     return patientHistory;
 };
 
+const createPrescription = async (doctorId, appointmentId, data) => {
+    const appointment = await prisma.appointment.findFirst({
+        where: { id: appointmentId, doctorId }
+    });
+    if (!appointment) throw new Error('Appointment not found');
+
+    return await prisma.prescription.create({
+        data: {
+            ...data,
+            appointmentId
+        }
+    });
+};
+
+const getPrescription = async (doctorId, appointmentId) => {
+    const appointment = await prisma.appointment.findFirst({
+        where: { id: appointmentId, doctorId },
+        include: { prescription: true }
+    });
+    if (!appointment || !appointment.prescription) return null;
+    return appointment.prescription;
+};
+
+const updatePrescription = async (doctorId, prescriptionId, data) => {
+    // Ensure the prescription belongs to an appointment owned by this doctor
+    const prescription = await prisma.prescription.findUnique({
+        where: { id: prescriptionId },
+        include: { appointment: true }
+    });
+    if (!prescription || prescription.appointment.doctorId !== doctorId) throw new Error('Prescription not found or unauthorized');
+
+    return await prisma.prescription.update({
+        where: { id: prescriptionId },
+        data
+    });
+};
+
+const getDoctorProfile = async (doctorId) => {
+    const doctor = await prisma.user.findUnique({
+        where: { id: doctorId, role: 'DOCTOR' },
+        include: { doctorProfile: { include: { speciality: true } } }
+    });
+    return doctor;
+};
+
+const updateDoctorProfile = async (doctorId, data) => {
+    // Only update allowed fields like bio, experience, consultationMode securely
+    const profile = await prisma.doctorProfile.findUnique({ where: { userId: doctorId } });
+    if (!profile) throw new Error('Profile missing');
+
+    return await prisma.doctorProfile.update({
+        where: { userId: doctorId },
+        data
+    });
+};
+
 module.exports = {
   getDashboardMetrics,
   getDoctorSchedule,
@@ -145,5 +201,10 @@ module.exports = {
   getAppointmentDetail,
   updateAppointmentStatus,
   updateAppointmentVideoLink,
-  getPatientHistoryForAppointment
+  getPatientHistoryForAppointment,
+  createPrescription,
+  getPrescription,
+  updatePrescription,
+  getDoctorProfile,
+  updateDoctorProfile
 };

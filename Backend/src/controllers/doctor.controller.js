@@ -62,6 +62,42 @@ const getPatientHistoryForAppointment = async (req, res, next) => {
   } catch (error) { res.status(403).json({ status: 'error', message: error.message }); }
 };
 
+const createPrescription = async (req, res, next) => {
+  try {
+    const data = await doctorService.createPrescription(req.user.id, req.params.id, req.body);
+    res.status(201).json({ status: 'success', data });
+  } catch (error) { res.status(400).json({ status: 'error', message: error.message }); }
+};
+
+const getPrescription = async (req, res, next) => {
+  try {
+    const data = await doctorService.getPrescription(req.user.id, req.params.id);
+    if (!data) return res.status(404).json({ status: 'error', message: 'Prescription not found' });
+    res.status(200).json({ status: 'success', data });
+  } catch (error) { res.status(403).json({ status: 'error', message: error.message }); }
+};
+
+const updatePrescription = async (req, res, next) => {
+  try {
+    const data = await doctorService.updatePrescription(req.user.id, req.params.id, req.body);
+    res.status(200).json({ status: 'success', data });
+  } catch (error) { res.status(400).json({ status: 'error', message: error.message }); }
+};
+
+const getDoctorProfile = async (req, res, next) => {
+  try {
+    const data = await doctorService.getDoctorProfile(req.user.id);
+    res.status(200).json({ status: 'success', data });
+  } catch (error) { res.status(400).json({ status: 'error', message: error.message }); }
+};
+
+const updateDoctorProfile = async (req, res, next) => {
+  try {
+    const data = await doctorService.updateDoctorProfile(req.user.id, req.body);
+    res.status(200).json({ status: 'success', data });
+  } catch (error) { res.status(400).json({ status: 'error', message: error.message }); }
+};
+
 module.exports = {
   getDashboard,
   getSchedule,
@@ -70,5 +106,10 @@ module.exports = {
   getAppointmentDetail,
   updateAppointmentStatus,
   updateAppointmentVideoLink,
-  getPatientHistoryForAppointment
+  getPatientHistoryForAppointment,
+  createPrescription,
+  getPrescription,
+  updatePrescription,
+  getDoctorProfile,
+  updateDoctorProfile
 };

@@ -176,4 +176,122 @@ router.patch('/appointments/:id/video-link', doctorController.updateAppointmentV
  */
 router.get('/appointments/:id/patient-history', doctorController.getPatientHistoryForAppointment);
 
+/**
+ * @swagger
+ * /api/doctor/appointments/{id}/prescription:
+ *   post:
+ *     summary: Issue a new prescription mapped to the appointment
+ *     tags: [Doctor]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               medicines:
+ *                 type: string
+ *               instructions:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Prescription persisted
+ *   get:
+ *     summary: Retrieve existing prescription under this appointment
+ *     tags: [Doctor]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Extracted metadata
+ */
+router.post('/appointments/:id/prescription', doctorController.createPrescription);
+router.get('/appointments/:id/prescription', doctorController.getPrescription);
+
+/**
+ * @swagger
+ * /api/doctor/prescriptions/{id}:
+ *   patch:
+ *     summary: Update generic fields inside an existing prescription
+ *     tags: [Doctor]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               medicines:
+ *                 type: string
+ *               instructions:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.patch('/prescriptions/:id', doctorController.updatePrescription);
+
+/**
+ * @swagger
+ * /api/doctor/profile:
+ *   get:
+ *     summary: Access the active Doctor's structural profile and speciality linkage
+ *     tags: [Doctor]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Schema object returning Doctor parameters
+ *   patch:
+ *     summary: Overwrite limited fields under the profile scope
+ *     tags: [Doctor]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               bio:
+ *                 type: string
+ *               experience:
+ *                 type: number
+ *               qualifications:
+ *                 type: string
+ *               consultationMode:
+ *                 type: string
+ *                 enum: [ONLINE, OFFLINE, BOTH]
+ *               consultationFee:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Fields patched successfully
+ */
+router.get('/profile', doctorController.getDoctorProfile);
+router.patch('/profile', doctorController.updateDoctorProfile);
+
 module.exports = router;
