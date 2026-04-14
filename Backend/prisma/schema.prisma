@@ -23,8 +23,13 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  doctorProfile  DoctorProfile?
-  patientProfile PatientProfile?
+  doctorProfile        DoctorProfile?
+  patientProfile       PatientProfile?
+  doctorShifts         Shift[]         @relation("DoctorShifts")
+  patientAppointments  Appointment[]   @relation("PatientAppointments")
+  doctorAppointments   Appointment[]   @relation("DoctorAppointments")
+  prescriptions        Prescription[]
+  payments             Payment[]
 }
 
 model DoctorProfile {
@@ -32,6 +37,7 @@ model DoctorProfile {
   userId           String  @unique
   user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   specialityId     String?
+  speciality       Speciality? @relation(fields: [specialityId], references: [id])
   consultationMode String? // ONLINE, OFFLINE
   consultationFee  Float?
   clinicAddress    String?
@@ -48,4 +54,101 @@ model PatientProfile {
   bloodGroup       String?
   address          String?
   emergencyContact String?
+}
+
+model Speciality {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  isActive    Boolean @default(true)
+  
+  doctors     DoctorProfile[]
+}
+
+model Shift {
+  id               String   @id @default(uuid())
+  doctorId         String
+  date             DateTime
+  shiftType        String   // MORNING, EVENING, NIGHT
+  startTime        String
+  endTime          String
+  consultationMode String   // ONLINE, OFFLINE
+  status           String   @default("ACTIVE")
+
+  doctor           User     @relation("DoctorShifts", fields: [doctorId], references: [id])
+  slots            Slot[]
+  appointments     Appointment[]
+}
+
+model Slot {
+  id          String   @id @default(uuid())
+  shiftId     String
+  startTime   String
+  endTime     String
+  tokenNumber Int
+  status      String   @default("AVAILABLE") // AVAILABLE, LOCKED, BOOKED, CANCELLED, COMPLETED, NO_SHOW
+  
+  shift       Shift    @relation(fields: [shiftId], references: [id])
+  appointments Appointment[]
+}
+
+model Appointment {
+  id                 String    @id @default(uuid())
+  patientId          String
+  doctorId           String
+  shiftId            String
+  slotId             String
+  tokenNumber        Int
+  mode               String    // ONLINE, OFFLINE
+  status             String    @default("PENDING") // PENDING, CONFIRMED, COMPLETED, CANCELLED, NO_SHOW
+  bookedAt           DateTime  @default(now())
+  cancelledAt        DateTime?
+  completedAt        DateTime?
+  cancellationReason String?
+  noShowReason       String?
+  videoLink          String?
+  
+  patient            User      @relation("PatientAppointments", fields: [patientId], references: [id])
+  doctor             User      @relation("DoctorAppointments", fields: [doctorId], references: [id])
+  shift              Shift     @relation(fields: [shiftId], references: [id])
+  slot               Slot      @relation(fields: [slotId], references: [id])
+  prescription       Prescription?
+  payment            Payment?
+}
+
+model Prescription {
+  id                   String   @id @default(uuid())
+  appointmentId        String   @unique
+  doctorId             String
+  diagnosisNotes       String?
+  medicines            String?  // Text/JSON
+  followUpInstructions String?
+  createdAt            DateTime @default(now())
+
+  appointment          Appointment @relation(fields: [appointmentId], references: [id])
+  doctor               User        @relation(fields: [doctorId], references: [id])
+}
+
+model Payment {
+  id             String   @id @default(uuid())
+  appointmentId  String   @unique
+  doctorId       String
+  amount         Float
+  paymentStatus  String   @default("PENDING") // PENDING, COMPLETED, FAILED, REFUNDED
+  paidAt         DateTime?
+  paymentMethod  String?
+  
+  appointment    Appointment @relation(fields: [appointmentId], references: [id])
+  doctor         User        @relation(fields: [doctorId], references: [id])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String
+  actorRole  String
+  action     String
+  entityType String
+  entityId   String
+  metadata   String?  // JSON
+  createdAt  DateTime @default(now())
 }

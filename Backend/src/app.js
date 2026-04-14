@@ -6,6 +6,8 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
 const authRoutes = require('./routes/auth.routes');
+const adminRoutes = require('./routes/admin/index');
+const doctorSideRoutes = require('./routes/doctor.routes');
 
 
 const app = express();
@@ -37,6 +39,8 @@ app.get('/health', (req, res) => {
 
 // App Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/doctor', doctorSideRoutes);
 
 // Mount other routes here in the future
 // app.use('/api', routes);
