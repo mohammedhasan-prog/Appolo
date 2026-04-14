@@ -5,6 +5,9 @@ const morgan = require('morgan');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
+const authRoutes = require('./routes/auth.routes');
+
+
 const app = express();
 
 // Middlewares
@@ -31,6 +34,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Hospital Management API is running' });
 });
+
+// App Routes
+app.use('/api/auth', authRoutes);
 
 // Mount other routes here in the future
 // app.use('/api', routes);

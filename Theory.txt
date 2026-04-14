@@ -42,3 +42,10 @@ Grouped into:
 - Configured environment variables loading with dotenv.
 - Added nodemon for development and scripts to run the server.
 - Set up Swagger documentation (swagger-ui-express, swagger-jsdoc) accessible at /api-docs.
+
+## Authentication implementation
+- Added Prisma ORM and SQLite as the database. Model `User` created.
+- Implemented `bcryptjs` for hashing passwords and `jsonwebtoken` for secure JWT-based sessions.
+- Created `zod` based request validation middleware for structured enforcement in routes.
+- Added Authentication APIs (`/api/auth/register`, `/api/auth/login`, `/api/auth/me`, `/api/auth/logout`) with best-practice folder structure (controllers, services, middlewares, utils).
+- Attached Swagger annotations for the Authentication APIs.
