@@ -49,3 +49,5 @@ Grouped into:
 - Created `zod` based request validation middleware for structured enforcement in routes.
 - Added Authentication APIs (`/api/auth/register`, `/api/auth/login`, `/api/auth/me`, `/api/auth/logout`) with best-practice folder structure (controllers, services, middlewares, utils).
 - Attached Swagger annotations for the Authentication APIs.
+- Updated Prisma schema to include `DoctorProfile` and `PatientProfile` models connected by one-to-one relations with `User`.
+- Modified `auth.service.js` register logic to automatically generate the nested specific role profile when signing up.

@@ -18,6 +18,7 @@ const router = express.Router();
  * /api/auth/register:
  *   post:
  *     summary: Register a new user
+ *     description: Registers a new user. Automatically creates a nested DoctorProfile or PatientProfile based on the role requested.
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -38,8 +39,17 @@ const router = express.Router();
  *                 type: string
  *               role:
  *                 type: string
+ *                 enum: [PATIENT, DOCTOR, ADMIN]
+ *                 default: PATIENT
+ *                 description: Auto-resolves specific app profile based on role.
  *               phone:
  *                 type: string
+ *             example:
+ *               name: "Dr Smith"
+ *               email: "drsmith@hospital.com"
+ *               password: "securepassword123"
+ *               role: "DOCTOR"
+ *               phone: "1234567890"
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -68,6 +78,9 @@ router.post('/register', validate(registerSchema), authController.register);
  *                 type: string
  *               password:
  *                 type: string
+ *             example:
+ *               email: "drsmith@hospital.com"
+ *               password: "securepassword123"
  *     responses:
  *       200:
  *         description: Successful login

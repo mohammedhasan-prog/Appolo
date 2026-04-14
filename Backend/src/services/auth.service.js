@@ -15,15 +15,29 @@ const registerUser = async (data) => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
+  // Prepare user data
+  const userData = {
+    name,
+    email,
+    password: hashedPassword,
+    role,
+    phone,
+  };
+
+  // Add specific profile based on role
+  if (role === 'DOCTOR') {
+    userData.doctorProfile = {
+      create: {}
+    };
+  } else if (role === 'PATIENT') {
+    userData.patientProfile = {
+      create: {}
+    };
+  }
+
   // Create user
   const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      password: hashedPassword,
-      role,
-      phone,
-    },
+    data: userData,
   });
 
   const token = generateToken(user.id, user.role);
