@@ -36,3 +36,8 @@ Grouped into:
 - Doctor APIs (Dashboard, Appointments, Prescriptions, Profile)
 - Patient APIs (Dashboard, Doctors/Filtering, Booking, Medical history)
 - Shared public APIs
+
+## Initial Server Configuration
+- Created basic Express app with middleware (cors, helmet, morgan).
+- Configured environment variables loading with dotenv.
+- Added nodemon for development and scripts to run the server.
