@@ -4,40 +4,10 @@ import './Landing.css';
 
 const Landing = () => {
     const navigate = useNavigate();
-    const token = localStorage.getItem('medsync_token');
-
-    const handleLogout = () => {
-        localStorage.removeItem('medsync_token');
-        localStorage.removeItem('medsync_user');
-        navigate('/');
-    };
 
     return (
         <div className="landing-root">
-            {/* Top Navigation Bar */}
-            <nav className="landing-nav">
-                <div className="landing-nav-container">
-                    <div className="landing-logo">
-                        MedSync
-                    </div>
-                    <div className="landing-nav-links">
-                        <a href="#" className="active">Find Doctor</a>
-                        <a href="#">Services</a>
-                        <a href="#">Patient Portal</a>
-                        <a href="#">Contact</a>
-                    </div>
-                    <div className="landing-actions">
-                        {token ? (
-                            <button className="btn-signin-nav" onClick={handleLogout}>Logout</button>
-                        ) : (
-                            <button className="btn-signin-nav" onClick={() => navigate('/auth')}>Sign In</button>
-                        )}
-                        <button className="btn-emergency-nav">Emergency</button>
-                    </div>
-                </div>
-            </nav>
-
-            <main>
+            <main className="landing-main">
                 {/* Hero Section */}
                 <section className="hero-section">
                     <div className="hero-grid">
