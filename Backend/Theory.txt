@@ -59,3 +59,6 @@ Grouped into:
   - Patient (Public doctor extraction arrays, Transaction wrapped atomized execution natively mapping slot locks onto bookings to completely eliminate concurrency double booking drops, Past Medical Histories).
 - Integration test environments verified execution blocking across explicitly targeted endpoints using respective JWT roles constraints cleanly without cross scope leakage.
 - Completely detailed OpenAPI specifications generated mapping explicitly all nested API inputs and outputs dynamically rendered into the accessible Swagger UI via `/api-docs`.
+
+## Frontend Setup
+- Initialized React application using Vite in the `Frontend` folder.
